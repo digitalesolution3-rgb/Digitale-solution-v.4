@@ -1,4 +1,4 @@
-// sw.js — Service Worker Digitale Solution v2
+// sw.js — Service Worker Digitale Solution v3
 // ============================================================
 // Stratégies :
 //   - Ressources statiques : Cache First (offline immédiat)
@@ -7,10 +7,10 @@
 //   - Background Sync : flush automatique dès retour connexion
 // ============================================================
 
-const CACHE_NAME     = 'ds-pos-v2';
-const CACHE_STATIC   = 'ds-static-v2';
+const CACHE_NAME     = 'ds-pos-v3';
+const CACHE_STATIC   = 'ds-static-v3';
 const DB_NAME        = 'ds_sw_db';
-const DB_VERSION     = 2;
+const DB_VERSION     = 3;
 const STORE_QUEUE    = 'offline_queue';
 const STORE_CACHE_TS = 'cache_timestamps';
 
@@ -27,7 +27,7 @@ const PRECACHE_URLS = [
 // INSTALLATION — pré-cache des ressources critiques
 // ============================================================
 self.addEventListener('install', event => {
-  console.log('[SW] Installation v2...');
+  console.log('[SW] Installation v3...');
   event.waitUntil(
     caches.open(CACHE_STATIC)
       .then(cache => cache.addAll(PRECACHE_URLS.map(url => new Request(url, { cache: 'reload' }))))

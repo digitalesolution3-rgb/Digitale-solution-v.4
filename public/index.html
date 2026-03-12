@@ -719,7 +719,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 </style>
 
 
-<!-- ====================== API LAYER — Supabase (backend Vercel) ====================== -->
+<!-- ====================== API LAYER — remplace Firebase SDK côté client ====================== -->
 <script>
 // URL de base de l'API — auto-détectée selon l'environnement
 const API_BASE = window.location.origin;
@@ -2894,7 +2894,7 @@ function renderSales() {
   // Filtre recherche
   const f = q ? poolByTab.filter(s =>
     (s.client_nom||'').toLowerCase().includes(q) ||
-    (s.items||[]).some(i => i.nom.toLowerCase().includes(q)) ||
+    (s.items||[]).some(i => (i.nom||'').toLowerCase().includes(q)) ||
     (s.cancelled_reason||'').toLowerCase().includes(q)
   ) : poolByTab;
 
@@ -3176,14 +3176,22 @@ async function loginMerchant(e) {
   const tel = document.getElementById('login-tel').value.trim();
   const pwd = document.getElementById('login-pwd').value;
   const btn = e.target.querySelector('button[type="submit"]');
+  const fbStatus = document.getElementById('fb-login-status');
+
   if (btn) { btn.disabled = true; btn.textContent = 'Connexion...'; }
+  if (fbStatus) { fbStatus.textContent = '🔄 Vérification en cours...'; fbStatus.style.display = 'block'; }
 
   try {
     // 1. Appel API login — fonctionne sur tous les navigateurs
     const data = await API.post('login', { telephone: tel, password: pwd });
 
     // 2. Sauvegarder toutes les données localement
-    const { merchant, data: mData } = data;
+    const merchant = data.merchant;
+    const mData    = data.data;
+
+    if (!merchant || !merchant.id) {
+      throw new Error('Réponse serveur invalide — réessayez.');
+    }
 
     // Mettre à jour merchants local
     const merchants = DB.get('merchants');
@@ -3213,10 +3221,11 @@ async function loginMerchant(e) {
     er.classList.remove('hidden');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Se connecter →'; }
+    if (fbStatus) fbStatus.style.display = 'none';
   }
 }
 
-// Connexion démo avec données pré-remplies
+// Charger toutes les données d'un marchand depuis Firestore vers localStorage
 function demoLogin() {
   const ph = '0700000001';
   // Always wipe and recreate for clean demo
@@ -3405,7 +3414,7 @@ function applyStockAdj() {
 }
 
 // ============================================================
-// SUPABASE / CONNEXION BACKEND
+// FIREBASE / CONNEXION TEMPS RÉEL
 // ============================================================
 
 // ---- ADMIN DB (separate namespace 'dsa_') ----
@@ -4076,11 +4085,11 @@ function submitPayment(){
 // initApp : charge l'interface commerce après login
 async function initApp(){
   const m = Auth.current(); if(!m){showPage('page-login');return;}
-  document.getElementById('sb-cname').textContent = m.nom_commerce;
-  document.getElementById('mm-name').textContent = m.proprietaire;
-  document.getElementById('mm-city').textContent = m.ville;
-  document.getElementById('mm-av').textContent = m.proprietaire.charAt(0).toUpperCase();
-  document.getElementById('cb-name').textContent = m.nom_commerce;
+  document.getElementById('sb-cname').textContent = m.nom_commerce || 'Mon Commerce';
+  document.getElementById('mm-name').textContent  = m.proprietaire || '—';
+  document.getElementById('mm-city').textContent  = m.ville || '—';
+  document.getElementById('mm-av').textContent    = (m.proprietaire||'?').charAt(0).toUpperCase();
+  document.getElementById('cb-name').textContent  = m.nom_commerce || 'Mon Commerce';
   const icons = {restaurant:'🍽️',boutique:'🛍️',hotel:'🏨',pharmacie:'💊',autre:'📦'};
   document.getElementById('cb-ico').textContent = icons[m.type]||'🏪';
   checkLicense(m);
@@ -4238,7 +4247,7 @@ function copySupabaseSchema() {
   });
 }
 
-// Fonctions conservées vides pour compatibilité (ancienne API Firebase supprimée)
+// Stub — Firebase retiré, fonctions gardées vides pour compatibilité
 function initFirebase() {}
 function activateFirebaseSync() {}
 function loadMerchantDataFromFirebase() {}
@@ -4261,10 +4270,39 @@ function exportLocalDB() {
   showAdminToast('⬇️ Export téléchargé', 'success');
 }
 
-// Statut backend Supabase (remplace Firebase)
-function getFirebaseStatus() { return '✅ Supabase connecté'; }
-function injectFirebaseSettingsUI() {}
-function renderFirebaseStatus() {}
+// Fonctions Firebase propriétaire (conservées pour compatibilité interne, non exposées en UI)
+function getFirebaseStatus() {
+  if (window.FB_MODE === 'firebase' && window._fbDb) return '🔥 Connecté';
+  if (FIREBASE_CONFIG.apiKey === 'VOTRE_API_KEY') return '⚙️ Non configuré';
+  return '⏳ En cours...';
+}
+function injectFirebaseSettingsUI() {} // no-op — Firebase est dans le panel admin
+function renderFirebaseStatus() {}     // no-op
+
+// Charger config Firebase depuis localStorage et initialiser
+(function loadSavedFirebaseCfg() {
+  const saved = localStorage.getItem('ds_firebase_cfg');
+  if (!saved) return;
+  try {
+    const cfg = JSON.parse(saved);
+    if (cfg.apiKey && cfg.apiKey !== 'VOTRE_API_KEY') {
+      Object.assign(FIREBASE_CONFIG, cfg);
+    }
+  } catch(e) {}
+})();
+
+// Démarrer Firebase — le SDK est chargé statiquement dans le <head>
+// On attend que le SDK soit prêt puis on initialise
+(function startFirebase() {
+  if (FIREBASE_CONFIG.apiKey === 'VOTRE_API_KEY') return;
+  if (window._fbInit) {
+    window._fbInit(FIREBASE_CONFIG);
+  } else {
+    window.addEventListener('firebase-sdk-loaded', () => {
+      if (window._fbInit && !window._fbDb) window._fbInit(FIREBASE_CONFIG);
+    }, { once: true });
+  }
+})();
 
 // ============================================================
 // PWA — Service Worker Registration
