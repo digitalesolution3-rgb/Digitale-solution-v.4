@@ -2035,7 +2035,7 @@ function reqPin(section) {
   let cfg = {};
   try { cfg = getConfig() || {}; } catch(e) { cfg = {}; }
 
-  if (!cfg.pin || cfg.pin.length < 4 || pinUnlocked) {
+  if (!cfg.pin || cfg.pin.length < 4 ) {
     showSection(section);
     return;
   }
@@ -2056,8 +2056,8 @@ function pinKey(k) {
     try { cfg = getConfig() || {}; } catch(e) { cfg = {}; }
     if (cfg.pin && DB._hash(pinBuffer) === cfg.pin) {
       closeMo('mo-pin');
-      pinUnlocked = true;
-      clearTimeout(pinUnlockTimer);
+      pinUnlocked = false;
+      
       // PIN déverrouillé pour toute la session — remis à false à la déconnexion
       if (pinTarget === 'cancel_sale') {
         _afterPinCancelSale();
@@ -2092,7 +2092,7 @@ function savePin() {
   if (i !== -1) { cfgs[i].pin = DB._hash(np); DB.set('configs', cfgs); }
   document.getElementById('s-pin-new').value = '';
   document.getElementById('s-pin-conf').value = '';
-  pinUnlocked = true;
+  pinUnlocked = false;
   showToast('✅ PIN enregistré avec succès', 'success');
 }
 
