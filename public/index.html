@@ -474,7 +474,9 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .therm-sep{border:none;border-top:1px dashed #333;margin:6px 0}
 .therm-center{text-align:center}
 .therm-bold{font-weight:700}
-.therm-row{display:flex;justify-content:space-between;gap:4px}
+.therm-row{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.therm-row span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.therm-row span:last-child{flex-shrink:0;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
 .therm-sm{font-size:.85em;color:#444}
 /* ---- VENTE RAPIDE ---- */
 .qr-layout{display:grid;grid-template-columns:1fr 380px;height:calc(100vh - 64px);gap:0}
@@ -2826,11 +2828,24 @@ function processQuickSale() {
   renderDashboard();
 }
 
+/** Formate une date ISO en "JJ mois AAAA à HH:MM" — sans dépendance locale navigateur */
+function fmtDateFR(isoStr) {
+  const d = new Date(isoStr);
+  if (isNaN(d)) return '';
+  const mois = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const j  = String(d.getDate()).padStart(2,'0');
+  const mo = mois[d.getMonth()];
+  const y  = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return j + ' ' + mo + ' ' + y + ' à ' + hh + 'h' + mm;
+}
+
 function showInvoice(sale, m, cfg) {
   window._lastSale = {sale, m, cfg};
   const dev = cfg?.devise || sale.devise || 'FCFA';
   const num = 'DS-' + sale.id.substr(-8).toUpperCase();
-  const ds = new Date(sale.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
+  const ds = fmtDateFR(sale.created_at);
   const waNum = sale.client_wa || currentSaleWA || '';
   const waBtn = document.getElementById('wa-send-btn');
   if (waBtn) waBtn.style.display = waNum ? 'inline-flex' : 'none';
@@ -2875,9 +2890,11 @@ function buildA4Invoice(sale, m, cfg, num, ds, dev, waNum) {
 
 function buildThermalInvoice(sale, m, cfg, num, ds, dev, waNum, fmt) {
   const w = fmt === '58' ? '58mm' : '80mm';
-  const items = (sale.items || []).map(i =>
-    '<div class="therm-row"><span>' + i.nom + ' x' + i.qty + '</span><span>' + fmtMoney(i.prix * i.qty, dev) + '</span></div>'
-  ).join('');
+  const items = (sale.items || []).map(i => {
+    const nomTronque = i.nom.length > 22 ? i.nom.substr(0,21) + '\u2026' : i.nom;
+    const label = nomTronque + (i.qty > 1 ? ' x' + i.qty : '');
+    return '<div class="therm-row"><span>' + label + '</span><span>' + fmtMoney(i.prix * i.qty, dev) + '</span></div>';
+  }).join('');
   return '<div class="therm-wrap" style="width:' + w + '">' +
     '<div class="therm-center therm-bold" style="font-size:1.1em">🌐 ' + m.nom_commerce + '</div>' +
     '<div class="therm-center therm-sm">' + m.ville + ' · ' + m.telephone + '</div>' +
