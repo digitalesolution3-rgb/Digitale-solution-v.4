@@ -476,6 +476,59 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .therm-bold{font-weight:700}
 .therm-row{display:flex;justify-content:space-between;gap:4px}
 .therm-sm{font-size:.85em;color:#444}
+/* ---- VENTE RAPIDE ---- */
+.qr-layout{display:grid;grid-template-columns:1fr 380px;height:calc(100vh - 64px);gap:0}
+.qr-left{padding:24px;overflow-y:auto;border-right:1px solid var(--border)}
+.qr-right{padding:20px;display:flex;flex-direction:column;background:var(--surface)}
+.qr-display{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;font-size:2.4rem;font-weight:700;font-family:var(--fh);text-align:right;color:var(--accent);letter-spacing:2px;min-height:72px;margin-bottom:16px;word-break:break-all}
+.qr-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.qr-key{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:18px 0;font-size:1.3rem;font-weight:700;cursor:pointer;transition:all var(--tr);color:var(--text);text-align:center}
+.qr-key:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.qr-key.del{background:rgba(231,76,60,.1);color:var(--danger);border-color:rgba(231,76,60,.3)}
+.qr-key.del:hover{background:var(--danger);color:#fff}
+.qr-key.zero{grid-column:span 2}
+.qr-add-btn{width:100%;margin-bottom:16px}
+.qr-lines{flex:1;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rsm);min-height:100px;margin-bottom:12px}
+.qr-line{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:.9rem}
+.qr-line:last-child{border-bottom:none}
+.qr-line .ql-dept{color:var(--accent);font-weight:700;font-size:.8rem;min-width:70px}
+.qr-line .ql-amt{font-weight:600;font-family:var(--fh)}
+.qr-line .ql-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem;padding:2px 6px;opacity:.7;transition:opacity var(--tr)}
+.qr-line .ql-del:hover{opacity:1}
+.qr-tot{background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:14px;margin-bottom:12px}
+.qr-empty{padding:20px;text-align:center;color:var(--text-muted);font-size:.85rem}
+@media(max-width:900px){.qr-layout{grid-template-columns:1fr;grid-template-rows:1fr auto}.qr-right{max-height:55vh}}
+/* ---- MONNAIE À RENDRE ---- */
+.qr-monnaie{background:var(--bg);border:2px solid var(--border);border-radius:var(--rsm);padding:14px;margin-bottom:12px;transition:border-color .2s}
+.qr-monnaie.ok{border-color:#27ae60}
+.qr-monnaie.insuf{border-color:var(--danger)}
+.qr-monnaie label{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:700;display:block;margin-bottom:6px}
+.qr-monnaie input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);color:var(--text);padding:10px 12px;font-size:1.1rem;font-weight:700;font-family:var(--fh)}
+.qr-monnaie input:focus{outline:none;border-color:var(--accent)}
+.qr-rendu{margin-top:8px;display:flex;justify-content:space-between;align-items:center;font-size:.9rem}
+.qr-rendu .rendu-lbl{color:var(--text-muted)}
+.qr-rendu .rendu-val{font-weight:700;font-size:1.1rem;font-family:var(--fh)}
+.rendu-val.ok{color:#27ae60}
+.rendu-val.insuf{color:var(--danger)}
+/* ---- SECTION CAISSE ---- */
+.caisse-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.caisse-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.caisse-card h4{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:12px;font-weight:700}
+.caisse-status{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700;margin-bottom:12px}
+.caisse-status.ouverte{background:rgba(39,174,96,.15);color:#27ae60;border:1px solid rgba(39,174,96,.3)}
+.caisse-status.fermee{background:rgba(231,76,60,.1);color:var(--danger);border:1px solid rgba(231,76,60,.2)}
+.caisse-fond-val{font-size:1.8rem;font-weight:700;font-family:var(--fh);color:var(--accent);margin-bottom:4px}
+.caisse-fond-sub{font-size:.78rem;color:var(--text-muted)}
+.rapport-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.rapport-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.rapport-table tr:last-child td{border-bottom:none}
+.rapport-table .rt-lbl{color:var(--text-muted)}
+.rapport-table .rt-val{text-align:right;font-weight:600;font-family:var(--fh)}
+.rapport-table .rt-total td{background:var(--surface2);font-weight:700;font-size:1rem}
+.rapport-table .rt-total .rt-val{color:var(--accent)}
+.mo-fond-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);color:var(--text);padding:14px;font-size:1.4rem;font-weight:700;font-family:var(--fh);text-align:right;margin-bottom:16px}
+.mo-fond-input:focus{outline:none;border-color:var(--accent)}
+@media(max-width:640px){.caisse-grid{grid-template-columns:1fr}}
 
 /* TOAST */
 .toast{position:fixed;bottom:28px;right:28px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 20px;font-size:.88rem;font-weight:500;box-shadow:var(--shadow);z-index:9999;animation:tIn .3s ease;max-width:360px}
@@ -926,6 +979,8 @@ window.addEventListener('load', checkApiStatus);
       <!-- GÉRANT — accès libre -->
       <div class="nav-grp-lbl">Vente</div>
       <button class="ni" onclick="showSection('pos')"      data-s="pos">      <span class="ni-ico">🛒</span><span class="nl">Point de Vente</span></button>
+      <button class="ni" onclick="showSection('quick')"    data-s="quick">   <span class="ni-ico">⚡</span><span class="nl">Vente Rapide</span></button>
+      <button class="ni" onclick="showSection('caisse')"   data-s="caisse">  <span class="ni-ico">💰</span><span class="nl">Caisse</span></button>
       <button class="ni" onclick="showSection('products')" data-s="products"><span class="ni-ico">📦</span><span class="nl">Produits</span></button>
       <!-- PROPRIÉTAIRE — PIN requis -->
       <div class="nav-grp-lbl nav-grp-owner">🔐 Propriétaire</div>
@@ -1042,6 +1097,110 @@ window.addEventListener('load', checkApiStatus);
         </div>
       </div>
     </section>
+
+    <!-- VENTE RAPIDE -->
+    <section id="s-quick" class="section">
+      <div class="qr-layout">
+        <!-- Colonne gauche : clavier -->
+        <div class="qr-left">
+          <p style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;font-weight:700">Saisir le montant</p>
+          <div id="qr-display" class="qr-display">0</div>
+          <div class="qr-keypad">
+            <button class="qr-key" onclick="qrKey('7')">7</button>
+            <button class="qr-key" onclick="qrKey('8')">8</button>
+            <button class="qr-key" onclick="qrKey('9')">9</button>
+            <button class="qr-key" onclick="qrKey('4')">4</button>
+            <button class="qr-key" onclick="qrKey('5')">5</button>
+            <button class="qr-key" onclick="qrKey('6')">6</button>
+            <button class="qr-key" onclick="qrKey('1')">1</button>
+            <button class="qr-key" onclick="qrKey('2')">2</button>
+            <button class="qr-key" onclick="qrKey('3')">3</button>
+            <button class="qr-key zero" onclick="qrKey('0')">0</button>
+            <button class="qr-key del" onclick="qrDel()">⌫</button>
+          </div>
+          <button class="btn-p full qr-add-btn" onclick="qrAddLine()">+ Ajouter la ligne</button>
+          <button class="btn-g full" onclick="qrReset()" style="font-size:.82rem">🗑 Tout effacer</button>
+        </div>
+        <!-- Colonne droite : récapitulatif + impression -->
+        <div class="qr-right">
+          <div class="cart-hdr"><h3>Articles <span class="bdg" id="qr-cnt">0</span></h3></div>
+          <div id="qr-lines" class="qr-lines"><p class="qr-empty">Aucun article</p></div>
+          <div class="qr-tot">
+            <div class="ct-row"><span>Nombre d'articles</span><span id="qr-nb">0</span></div>
+            <div class="ct-row big"><span>TOTAL</span><span id="qr-total">0 FCFA</span></div>
+          </div>
+          <!-- Monnaie à rendre -->
+          <div class="qr-monnaie" id="qr-monnaie-box">
+            <label>💵 Montant reçu</label>
+            <input type="number" id="qr-recu" placeholder="0" oninput="qrCalcRendu()" min="0"/>
+            <div class="qr-rendu">
+              <span class="rendu-lbl">Monnaie à rendre</span>
+              <span class="rendu-val" id="qr-rendu-val">—</span>
+            </div>
+          </div>
+          <button class="btn-p full xl" onclick="processQuickSale()">🖨 Valider &amp; Imprimer</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAISSE -->
+    <section id="s-caisse" class="section">
+      <div style="max-width:860px;margin:0 auto">
+        <!-- Statut caisse -->
+        <div class="caisse-grid">
+          <div class="caisse-card">
+            <h4>Statut de la caisse</h4>
+            <div id="caisse-status-badge" class="caisse-status fermee">● Fermée</div>
+            <div id="caisse-fond-display" class="caisse-fond-val">— FCFA</div>
+            <div class="caisse-fond-sub">Fond d'ouverture</div>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn-p sm" id="btn-ouvrir-caisse" onclick="ouvrirCaisse()">🔓 Ouvrir la caisse</button>
+              <button class="btn-d sm" id="btn-fermer-caisse" onclick="fermerCaisse()" style="display:none">🔒 Fermer la caisse</button>
+            </div>
+          </div>
+          <div class="caisse-card">
+            <h4>Résumé du jour</h4>
+            <table class="rapport-table">
+              <tr><td class="rt-lbl">Fond d'ouverture</td><td class="rt-val" id="rpt-fond">0 FCFA</td></tr>
+              <tr><td class="rt-lbl">Ventes encaissées</td><td class="rt-val" id="rpt-ventes">0 FCFA</td></tr>
+              <tr><td class="rt-lbl">Nombre de ventes</td><td class="rt-val" id="rpt-nb">0</td></tr>
+              <tr class="rt-total"><td class="rt-lbl">Total en caisse</td><td class="rt-val" id="rpt-total">0 FCFA</td></tr>
+            </table>
+          </div>
+        </div>
+        <!-- Rapport journalier -->
+        <div class="caisse-card" style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h4 style="margin:0">📊 Rapport journalier</h4>
+            <button class="btn-g sm" onclick="imprimerRapport()">🖨 Imprimer</button>
+          </div>
+          <table class="rapport-table" id="rpt-detail-table">
+            <thead><tr style="background:var(--surface2)">
+              <th style="text-align:left;padding:8px 12px;font-size:.78rem;color:var(--text-muted)">Heure</th>
+              <th style="text-align:left;padding:8px 12px;font-size:.78rem;color:var(--text-muted)">Caissier</th>
+              <th style="text-align:right;padding:8px 12px;font-size:.78rem;color:var(--text-muted)">Montant</th>
+            </tr></thead>
+            <tbody id="rpt-tbody"><tr><td colspan="3" class="empty">Aucune vente aujourd'hui</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal ouverture caisse -->
+    <div id="mo-caisse" class="mo hidden">
+      <div class="modal" style="max-width:380px">
+        <div class="mo-hdr"><h3>🔓 Ouvrir la caisse</h3></div>
+        <div class="mo-body">
+          <label style="font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;display:block;margin-bottom:8px">Fond de caisse initial</label>
+          <input type="number" id="fond-input" class="mo-fond-input" placeholder="0" min="0"/>
+          <p style="font-size:.8rem;color:var(--text-muted)">Saisissez le montant en espèces disponible à l'ouverture.</p>
+        </div>
+        <div class="mo-foot">
+          <button class="btn-g" onclick="closeMo('mo-caisse')">Annuler</button>
+          <button class="btn-p" onclick="confirmerOuverture()">Confirmer l'ouverture</button>
+        </div>
+      </div>
+    </div>
 
     <!-- GESTION STOCK -->
     <section id="s-stock" class="section">
@@ -2103,7 +2262,7 @@ function showSection(name) {
   document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
   document.getElementById('s-' + name)?.classList.add('active');
   document.querySelector('[data-s="' + name + '"]')?.classList.add('active');
-  const titles = {dashboard:'Dashboard',pos:'Point de Vente',products:'Produits',stock:'Gestion Stock',clients:'Clients',sales:'Ventes',settings:'Paramètres'};
+  const titles = {dashboard:'Dashboard',pos:'Point de Vente',quick:'Vente Rapide',caisse:'Caisse',products:'Produits',stock:'Gestion Stock',clients:'Clients',sales:'Ventes',settings:'Paramètres'};
   document.getElementById('tb-title').textContent = titles[name] || name;
   // Update expiry warning in topbar
   const curM = Auth.current();
@@ -2116,7 +2275,7 @@ function showSection(name) {
     }
   }
   document.getElementById('sidebar').classList.remove('mob-open');
-  ({dashboard:renderDashboard,pos:renderPOS,products:renderProducts,stock:renderStock,clients:renderClients,sales:renderSales,settings:renderSettings})[name]?.();
+  ({dashboard:renderDashboard,pos:renderPOS,quick:renderQuick,caisse:renderCaisse,products:renderProducts,stock:renderStock,clients:renderClients,sales:renderSales,settings:renderSettings})[name]?.();
 }
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
@@ -2438,7 +2597,235 @@ function setPrintFmt(fmt) {
   if (lastSale) showInvoice(lastSale.sale, lastSale.m, lastSale.cfg);
 }
 
-// ---- INVOICE ----
+// ============================================================
+// VENTE RAPIDE — Saisie par montant
+// ============================================================
+let qrLines = [];       // [{dept, montant}]
+let qrCurrent = '0';   // montant en cours de saisie
+
+function renderQuick() { /* rien à charger depuis DB */ }
+
+function qrKey(digit) {
+  if (qrCurrent === '0') qrCurrent = digit;
+  else if (qrCurrent.length < 9) qrCurrent += digit;
+  document.getElementById('qr-display').textContent = parseInt(qrCurrent).toLocaleString('fr-FR');
+}
+
+function qrDel() {
+  qrCurrent = qrCurrent.length > 1 ? qrCurrent.slice(0, -1) : '0';
+  document.getElementById('qr-display').textContent = parseInt(qrCurrent).toLocaleString('fr-FR');
+}
+
+function qrAddLine() {
+  const amt = parseInt(qrCurrent);
+  if (!amt || amt <= 0) { showToast('⚠️ Montant invalide', 'error'); return; }
+  qrLines.push({ dept: 'DEPT001', montant: amt });
+  qrCurrent = '0';
+  document.getElementById('qr-display').textContent = '0';
+  qrRenderLines();
+}
+
+function qrRemoveLine(idx) {
+  qrLines.splice(idx, 1);
+  qrRenderLines();
+}
+
+function qrReset() {
+  qrLines = [];
+  qrCurrent = '0';
+  document.getElementById('qr-display').textContent = '0';
+  qrRenderLines();
+}
+
+function qrRenderLines() {
+  const m = Auth.current();
+  const dev = (m ? getConfig()?.devise : null) || 'FCFA';
+  const total = qrLines.reduce((s, l) => s + l.montant, 0);
+  document.getElementById('qr-cnt').textContent = qrLines.length;
+  document.getElementById('qr-nb').textContent = qrLines.length;
+  document.getElementById('qr-total').textContent = fmtMoney(total, dev);
+  const el = document.getElementById('qr-lines');
+  if (!qrLines.length) {
+    el.innerHTML = '<p class="qr-empty">Aucun article</p>';
+    return;
+  }
+  el.innerHTML = qrLines.map((l, i) =>
+    '<div class="qr-line">' +
+      '<span class="ql-dept">' + l.dept + '</span>' +
+      '<span class="ql-amt">·' + l.montant.toLocaleString('fr-FR') + '</span>' +
+      '<button class="ql-del" onclick="qrRemoveLine(' + i + ')">✕</button>' +
+    '</div>'
+  ).join('');
+}
+
+// ============================================================
+// GESTION DE CAISSE
+// ============================================================
+function getCaisseData(mid) {
+  const key = 'caisse_' + mid;
+  try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; }
+}
+function setCaisseData(mid, data) {
+  localStorage.setItem('caisse_' + mid, JSON.stringify(data));
+}
+
+function renderCaisse() {
+  const m = Auth.current(); if (!m) return;
+  const dev = getConfig()?.devise || 'FCFA';
+  const data = getCaisseData(m.id);
+  const ouverte = !!data.ouverte;
+
+  // Statut badge
+  document.getElementById('caisse-status-badge').className = 'caisse-status ' + (ouverte ? 'ouverte' : 'fermee');
+  document.getElementById('caisse-status-badge').textContent = ouverte ? '● Ouverte' : '● Fermée';
+  document.getElementById('caisse-fond-display').textContent = ouverte ? fmtMoney(data.fond || 0, dev) : '— ' + dev;
+  document.getElementById('btn-ouvrir-caisse').style.display = ouverte ? 'none' : '';
+  document.getElementById('btn-fermer-caisse').style.display = ouverte ? '' : 'none';
+
+  // Ventes du jour
+  const today = new Date().toLocaleDateString('fr-FR');
+  const sales = DB.forM('sales', m.id).filter(s => {
+    const d = new Date(s.created_at).toLocaleDateString('fr-FR');
+    return d === today && s.statut !== 'cancelled';
+  });
+  const totalVentes = sales.reduce((s, v) => s + (v.total || 0), 0);
+  const fond = ouverte ? (data.fond || 0) : 0;
+
+  document.getElementById('rpt-fond').textContent   = fmtMoney(fond, dev);
+  document.getElementById('rpt-ventes').textContent = fmtMoney(totalVentes, dev);
+  document.getElementById('rpt-nb').textContent     = sales.length;
+  document.getElementById('rpt-total').textContent  = fmtMoney(fond + totalVentes, dev);
+
+  // Tableau détail
+  const tbody = document.getElementById('rpt-tbody');
+  if (!sales.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="empty">Aucune vente aujourd\'hui</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...sales].reverse().map(s =>
+    '<tr>' +
+      '<td>' + new Date(s.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) + '</td>' +
+      '<td>' + (s.client_nom || 'Client') + '</td>' +
+      '<td class="rt-val">' + fmtMoney(s.total, dev) + '</td>' +
+    '</tr>'
+  ).join('');
+}
+
+function ouvrirCaisse() {
+  document.getElementById('fond-input').value = '';
+  document.getElementById('mo-caisse').classList.remove('hidden');
+  setTimeout(() => document.getElementById('fond-input').focus(), 100);
+}
+
+function confirmerOuverture() {
+  const m = Auth.current(); if (!m) return;
+  const fond = parseInt(document.getElementById('fond-input').value) || 0;
+  setCaisseData(m.id, { ouverte: true, fond, ouverture: new Date().toISOString() });
+  closeMo('mo-caisse');
+  showToast('✅ Caisse ouverte avec ' + fmtMoney(fond, getConfig()?.devise||'FCFA') + ' de fond', 'success');
+  renderCaisse();
+}
+
+function fermerCaisse() {
+  const m = Auth.current(); if (!m) return;
+  const dev = getConfig()?.devise || 'FCFA';
+  const data = getCaisseData(m.id);
+  const today = new Date().toLocaleDateString('fr-FR');
+  const sales = DB.forM('sales', m.id).filter(s => {
+    const d = new Date(s.created_at).toLocaleDateString('fr-FR');
+    return d === today && s.statut !== 'cancelled';
+  });
+  const totalVentes = sales.reduce((s, v) => s + (v.total || 0), 0);
+  const total = (data.fond || 0) + totalVentes;
+  if (!confirm('Fermer la caisse ?\n\nFond: ' + fmtMoney(data.fond||0, dev) + '\nVentes: ' + fmtMoney(totalVentes, dev) + '\nTotal: ' + fmtMoney(total, dev))) return;
+  setCaisseData(m.id, { ...data, ouverte: false, fermeture: new Date().toISOString(), totalJour: total });
+  showToast('🔒 Caisse fermée. Total: ' + fmtMoney(total, dev), 'success');
+  renderCaisse();
+}
+
+function imprimerRapport() {
+  const m = Auth.current(); if (!m) return;
+  const dev = getConfig()?.devise || 'FCFA';
+  const data = getCaisseData(m.id);
+  const today = new Date().toLocaleDateString('fr-FR');
+  const sales = DB.forM('sales', m.id).filter(s => {
+    const d = new Date(s.created_at).toLocaleDateString('fr-FR');
+    return d === today && s.statut !== 'cancelled';
+  });
+  const totalVentes = sales.reduce((s, v) => s + (v.total || 0), 0);
+  const fond = data.fond || 0;
+  const lignes = [...sales].reverse().map(s =>
+    '<div class="therm-row"><span>' + new Date(s.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + ' ' + (s.client_nom||'Client') + '</span><span>' + fmtMoney(s.total,dev) + '</span></div>'
+  ).join('');
+  const html =
+    '<div class="therm-wrap" style="width:80mm">' +
+    '<div class="therm-center therm-bold" style="font-size:1.1em">' + m.nom_commerce + '</div>' +
+    '<div class="therm-center therm-sm">' + today + '</div>' +
+    '<hr class="therm-sep"/>' +
+    '<div class="therm-center therm-bold">RAPPORT DE CAISSE</div>' +
+    '<hr class="therm-sep"/>' +
+    '<div class="therm-row"><span>Fond d\'ouverture</span><span>' + fmtMoney(fond,dev) + '</span></div>' +
+    '<hr class="therm-sep"/>' +
+    (lignes || '<div class="therm-center therm-sm">Aucune vente</div>') +
+    '<hr class="therm-sep"/>' +
+    '<div class="therm-row"><span>Total ventes (' + sales.length + ')</span><span>' + fmtMoney(totalVentes,dev) + '</span></div>' +
+    '<div class="therm-row therm-bold"><span>TOTAL EN CAISSE</span><span>' + fmtMoney(fond+totalVentes,dev) + '</span></div>' +
+    '<hr class="therm-sep"/>' +
+    '<div class="therm-center therm-sm">Digitale Solution</div>' +
+    '</div>';
+  document.getElementById('inv-content').innerHTML = html;
+  document.getElementById('mo-inv').classList.remove('hidden');
+  setPrintFmt('80');
+}
+
+// ---- MONNAIE À RENDRE (Vente Rapide) ----
+function qrCalcRendu() {
+  const dev = getConfig()?.devise || 'FCFA';
+  const total = qrLines.reduce((s, l) => s + l.montant, 0);
+  const recu = parseInt(document.getElementById('qr-recu').value) || 0;
+  const box = document.getElementById('qr-monnaie-box');
+  const val = document.getElementById('qr-rendu-val');
+  if (!recu) { val.textContent = '—'; val.className = 'rendu-val'; box.className = 'qr-monnaie'; return; }
+  const rendu = recu - total;
+  if (rendu < 0) {
+    val.textContent = 'Insuffisant (' + fmtMoney(Math.abs(rendu), dev) + ' manquant)';
+    val.className = 'rendu-val insuf';
+    box.className = 'qr-monnaie insuf';
+  } else {
+    val.textContent = fmtMoney(rendu, dev);
+    val.className = 'rendu-val ok';
+    box.className = 'qr-monnaie ok';
+  }
+}
+
+
+function processQuickSale() {
+  const m = Auth.current(); if (!m) return;
+  const licSt = getLicStatus(m).st;
+  if (licSt === 'expired' || licSt === 'suspended') {
+    showToast('⚠️ Licence expirée. Renouvelez votre abonnement.', 'error');
+    openPaymentPage(); return;
+  }
+  if (!qrLines.length) { showToast('⚠️ Aucun article saisi', 'error'); return; }
+  const cfg = getConfig(), dev = cfg?.devise || 'FCFA';
+  const items = qrLines.map(l => ({ nom: l.dept, prix: l.montant, qty: 1 }));
+  const total = qrLines.reduce((s, l) => s + l.montant, 0);
+  const sale = DB.insert('sales', {
+    client_id: '', client_nom: 'Client', client_wa: '',
+    items, total, devise: dev
+  }, m.id);
+  // Sync en arrière-plan
+  API.post('sync', { merchant_id: m.id, collection: 'sales', item: sale }).catch(() => {});
+  // Afficher ticket thermique 80mm
+  setPrintFmt('80');
+  showInvoice(sale, m, cfg);
+  showToast('✅ Vente enregistrée !', 'success');
+  qrReset();
+  document.getElementById('qr-recu').value = '';
+  qrCalcRendu();
+  renderDashboard();
+}
+
 function showInvoice(sale, m, cfg) {
   window._lastSale = {sale, m, cfg};
   const dev = cfg?.devise || sale.devise || 'FCFA';
@@ -3271,7 +3658,10 @@ function showToast(msg, type) {
 
 // ---- UTILS ----
 function fmtMoney(n, dev) {
-  const f = (parseFloat(n) || 0).toLocaleString('fr-FR', {minimumFractionDigits:0,maximumFractionDigits:0});
+  // Formatage manuel pour éviter les caractères invisibles sur imprimantes thermiques
+  const num = Math.round(parseFloat(n) || 0);
+  const f = num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
   const syms = {USD:'$',EUR:'€',GBP:'£',NGN:'₦'};
   return syms[dev] ? syms[dev] + f : f + ' ' + (dev || 'FCFA');
 }
@@ -4703,5 +5093,6 @@ document.addEventListener('DOMContentLoaded', async () => {  console.log('🚀 D
   if (typeof renderCart !== 'undefined') renderCart();
 });
 </script>
+
 </body>
 </html>
