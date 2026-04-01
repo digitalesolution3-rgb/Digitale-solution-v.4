@@ -568,6 +568,16 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 #conn-indicator.syncing{background:rgba(79,195,247,.1);color:#4FC3F7;border:1px solid rgba(79,195,247,.2)}
 .conn-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
 .conn-dot.pulse{animation:pulse 1.5s infinite}
+/* RT (Realtime) indicator */
+#rt-indicator{display:flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;
+  padding:4px 10px;border-radius:100px;transition:all .4s;cursor:default}
+#rt-indicator.rt-off{background:rgba(90,86,82,.1);color:#5A5652;border:1px solid rgba(90,86,82,.2)}
+#rt-indicator.rt-connecting{background:rgba(243,156,18,.1);color:var(--warning);border:1px solid rgba(243,156,18,.2)}
+#rt-indicator.rt-live{background:rgba(46,204,113,.12);color:var(--success);border:1px solid rgba(46,204,113,.25)}
+#rt-indicator.rt-live .rt-dot{animation:rtPulse 1.8s infinite}
+#rt-indicator.rt-error{background:rgba(231,76,60,.08);color:#E74C3C;border:1px solid rgba(231,76,60,.2)}
+.rt-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+@keyframes rtPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.75)}}
 
 /* Bouton d'installation PWA */
 #pwa-install-btn{
@@ -1009,6 +1019,11 @@ window.addEventListener('load', checkApiStatus);
         <div id="conn-indicator" class="online" title="Statut de la connexion">
           <span class="conn-dot"></span>
           <span id="conn-label">En ligne</span>
+        </div>
+        <!-- Indicateur Temps Réel -->
+        <div id="rt-indicator" class="rt-off" title="Synchronisation temps réel multi-appareils">
+          <span class="rt-dot"></span>
+          <span id="rt-label">Temps réel</span>
         </div>
         <div class="theme-pills" id="app-theme-pills">
           <div class="tp active" data-t="dark" title="Sombre" onclick="setTheme('dark',this)"></div>
@@ -1838,6 +1853,56 @@ window.addEventListener('load', checkApiStatus);
         </div>
       </div>
 
+      <!-- ⚡ Temps Réel Multi-Appareils -->
+      <div class="adm-card" style="margin-bottom:20px;border-color:rgba(46,204,113,0.2)">
+        <div class="adm-card-hdr" style="background:rgba(46,204,113,0.04)">
+          <h3>⚡ Temps Réel Multi-Appareils</h3>
+          <span id="adm-rt-badge" style="font-size:.75rem;color:#64748B">Non configuré</span>
+        </div>
+        <div class="adm-card-body" style="padding:20px">
+          <p style="font-size:.82rem;color:#64748B;margin-bottom:16px">
+            Permet à plusieurs appareils (vendeur, caissier, gérant) de voir les données en temps réel. Utilise la clé <strong style="color:#E2E8F0">publique anon</strong> de Supabase — sans risque de sécurité.
+          </p>
+
+          <!-- URL -->
+          <div style="margin-bottom:12px">
+            <label style="font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;color:#64748B;font-weight:700;display:block;margin-bottom:6px">URL Supabase (publique)</label>
+            <input type="text" id="adm-rt-url" placeholder="https://xxxxx.supabase.co"
+              style="width:100%;background:#0A0E16;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#F0EDE8;padding:10px 12px;font-size:.85rem;font-family:'DM Sans',sans-serif"/>
+          </div>
+
+          <!-- Anon Key -->
+          <div style="margin-bottom:16px">
+            <label style="font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;color:#64748B;font-weight:700;display:block;margin-bottom:6px">Anon Key (publique)</label>
+            <div style="position:relative">
+              <input type="password" id="adm-rt-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                style="width:100%;background:#0A0E16;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#F0EDE8;padding:10px 40px 10px 12px;font-size:.85rem;font-family:'DM Sans',sans-serif"/>
+              <button onclick="toggleRtKeyVis()" id="adm-rt-eye"
+                style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#64748B;cursor:pointer;font-size:.9rem">👁</button>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn-p sm" onclick="saveRtConfig()" style="background:#2ECC71;color:#000;font-weight:700">💾 Sauvegarder</button>
+            <button class="btn-g sm" onclick="testRtConfig()">🔌 Tester</button>
+            <button class="btn-g sm" onclick="clearRtConfig()" style="color:#E74C3C">🗑️ Effacer</button>
+          </div>
+          <div id="adm-rt-feedback" style="margin-top:12px;font-size:.82rem;display:none"></div>
+
+          <!-- Guide Supabase Realtime -->
+          <div style="margin-top:16px;background:#0A0E16;border-radius:8px;padding:14px;border:1px solid rgba(46,204,113,0.1)">
+            <p style="font-size:.75rem;color:#3ECF8E;font-weight:700;margin-bottom:8px">📋 Activer Realtime sur Supabase</p>
+            <ol style="font-size:.75rem;color:#475569;padding-left:16px;line-height:2">
+              <li>Supabase Dashboard → <strong style="color:#94A3B8">Database → Replication</strong></li>
+              <li>Activer la publication <code style="background:#141414;padding:1px 5px;border-radius:3px">supabase_realtime</code></li>
+              <li>Cocher : <strong style="color:#94A3B8">products, sales, clients, configs</strong></li>
+              <li>Settings → API → copier <strong style="color:#94A3B8">URL</strong> et <strong style="color:#94A3B8">anon key</strong> ici</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
       <!-- Schéma SQL -->
       <div class="adm-card" style="margin-bottom:20px;border-color:rgba(79,195,247,0.2)">
         <div class="adm-card-hdr"><h3>📋 Schéma SQL Supabase</h3></div>
@@ -2029,6 +2094,8 @@ alter table payments  enable row level security;</pre>
     </div>
   </div>
 </div>
+<!-- Supabase JS v2 — Realtime + client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ============================================================
 // DIGITALE SOLUTION — JavaScript
@@ -2090,6 +2157,194 @@ const Auth = {
     return u;
   },
   logout(){sessionStorage.removeItem('ds_m')}
+};
+
+// ============================================================
+// RT — SUPABASE REALTIME (temps réel multi-appareils)
+// ============================================================
+const RT = {
+  _sb:      null,   // Supabase client
+  _chans:   [],     // Canaux actifs
+  _mid:     null,   // merchant_id courant
+  _lastIds: {},     // {table: Set<id>} — IDs écrits localement pour dédup
+
+  // ── Config ────────────────────────────────────────────────
+  _cfg() {
+    return {
+      url:  localStorage.getItem('ds_sb_client_url')  || '',
+      key:  localStorage.getItem('ds_sb_client_anon') || ''
+    };
+  },
+  saveConfig(url, key) {
+    localStorage.setItem('ds_sb_client_url',  url.trim());
+    localStorage.setItem('ds_sb_client_anon', key.trim());
+  },
+  hasConfig() {
+    const c = this._cfg();
+    return !!(c.url && c.key);
+  },
+
+  // ── Init client ───────────────────────────────────────────
+  _init() {
+    if (this._sb) return true;
+    const { url, key } = this._cfg();
+    if (!url || !key) return false;
+    try {
+      this._sb = supabase.createClient(url, key, {
+        realtime: { params: { eventsPerSecond: 10 } }
+      });
+      return true;
+    } catch(e) {
+      console.error('[RT] createClient:', e);
+      return false;
+    }
+  },
+
+  // ── Connexion (appelée après login) ───────────────────────
+  async connect(merchant) {
+    this._mid = merchant.id;
+    if (!this.hasConfig()) {
+      this._setStatus('rt-off', 'Non configuré');
+      return;
+    }
+    if (!this._init()) {
+      this._setStatus('rt-error', 'Erreur init');
+      return;
+    }
+    this._setStatus('rt-connecting', 'Connexion…');
+    this._subscribe();
+  },
+
+  // ── Souscriptions Postgres Changes ───────────────────────
+  _subscribe() {
+    const mid = this._mid;
+    this.disconnect(); // nettoyer les anciens canaux
+
+    const tables = ['products', 'sales', 'clients', 'configs'];
+    let readyCnt = 0;
+
+    tables.forEach(table => {
+      const ch = this._sb
+        .channel('rt_' + table + '_' + mid)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table,
+          filter: 'merchant_id=eq.' + mid
+        }, (payload) => {
+          this._onRemoteChange(table, payload);
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            readyCnt++;
+            if (readyCnt === tables.length) {
+              this._setStatus('rt-live', 'Temps réel ✦');
+              console.log('[RT] ✅ Tous les canaux actifs pour', mid);
+            }
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            this._setStatus('rt-error', 'Erreur canal');
+          }
+        });
+      this._chans.push(ch);
+    });
+  },
+
+  // ── Réception d'un changement distant ────────────────────
+  _onRemoteChange(table, payload) {
+    const { eventType, new: newRow, old: oldRow } = payload;
+    const id = (newRow?.id) || (oldRow?.id);
+
+    // Dédup : ignorer si c'est notre propre écriture récente
+    if (id && this._lastIds[table]?.has(id)) {
+      this._lastIds[table].delete(id);
+      return;
+    }
+
+    const all = DB.get(table);
+    let changed = false;
+
+    if (eventType === 'INSERT') {
+      if (!all.find(r => r.id === newRow.id)) {
+        all.push(newRow); DB.set(table, all); changed = true;
+      }
+    } else if (eventType === 'UPDATE') {
+      const i = all.findIndex(r => r.id === newRow.id);
+      if (i !== -1) { all[i] = { ...all[i], ...newRow }; }
+      else { all.push(newRow); }
+      DB.set(table, all); changed = true;
+    } else if (eventType === 'DELETE') {
+      const filtered = all.filter(r => r.id !== (oldRow?.id));
+      if (filtered.length !== all.length) { DB.set(table, filtered); changed = true; }
+    }
+
+    if (changed) {
+      this._rerender(table);
+      this._notifyChange(table, eventType, newRow || oldRow);
+    }
+  },
+
+  // ── Marquer un ID comme écrit localement (dédup) ─────────
+  markLocal(table, id) {
+    if (!this._lastIds[table]) this._lastIds[table] = new Set();
+    this._lastIds[table].add(id);
+    // Expire après 8s
+    setTimeout(() => this._lastIds[table]?.delete(id), 8000);
+  },
+
+  // ── Re-rendu UI après changement distant ─────────────────
+  _rerender(table) {
+    const map = {
+      products: () => { try { renderProducts(); renderPOS(); renderStock(); } catch(e){} },
+      sales:    () => { try { renderSales(); renderDashboard(); } catch(e){} },
+      clients:  () => { try { renderClients(); fillCliSelect?.(); } catch(e){} },
+      configs:  () => { try { renderSettings?.(); } catch(e){} }
+    };
+    map[table]?.();
+    try { renderDashboard(); } catch(e){}
+  },
+
+  // ── Toast notification changement distant ────────────────
+  _notifyChange(table, eventType, row) {
+    const labels = { products:'Produit', sales:'Vente', clients:'Client', configs:'Config' };
+    const icons  = { INSERT:'➕', UPDATE:'✏️', DELETE:'🗑️' };
+    const lbl = labels[table] || table;
+    const ico = icons[eventType] || '🔄';
+    const name = row?.nom || row?.nom_commerce || row?.client_nom || '';
+    showToast(`${ico} ${lbl}${name ? ' — ' + name : ''} (autre appareil)`, 'success');
+  },
+
+  // ── Déconnexion ───────────────────────────────────────────
+  disconnect() {
+    if (this._sb) {
+      this._chans.forEach(ch => { try { this._sb.removeChannel(ch); } catch(e){} });
+    }
+    this._chans = [];
+    this._mid = null;
+    this._setStatus('rt-off', 'Déconnecté');
+  },
+
+  // ── Status indicator ─────────────────────────────────────
+  _setStatus(cls, label) {
+    const el = document.getElementById('rt-indicator');
+    const lb = document.getElementById('rt-label');
+    if (el) { el.className = 'rt-indicator ' + cls; }  // class sans id prefix
+    // Fix: set the id-based class properly
+    if (el) el.setAttribute('class', cls === 'rt-off' ? 'rt-off' : cls);
+    // Re-apply id
+    if (el) el.id = 'rt-indicator';
+    if (lb) lb.textContent = label;
+    console.log('[RT]', cls, '—', label);
+  },
+
+  isLive() { return this._chans.length > 0; }
+};
+
+// Patch CSS class setter propre
+RT._setStatus = function(cls, label) {
+  const el = document.getElementById('rt-indicator');
+  const lb = document.getElementById('rt-label');
+  if (el) { el.className = ''; el.classList.add(cls); }
+  if (lb) lb.textContent = label;
 };
 
 // ---- THEME ----
@@ -2437,7 +2692,7 @@ function saveProduct() {
   editProdId ? DB.update('products', editProdId, rec, m.id) : DB.insert('products', rec, m.id);
   // Sync API
   const item = DB.forM('products', m.id).find(p => editProdId ? p.id === editProdId : p.nom === nom && p.prix === prix);
-  if (item) API.post('sync', { merchant_id: m.id, collection: 'products', item }).catch(()=>{});
+  if (item) { RT.markLocal('products', item.id); API.post('sync', { merchant_id: m.id, collection: 'products', item }).catch(()=>{}); }
   // Notification propriétaire
   StockNotif.push(m.id, {
     type:   isEdit ? 'product_edit' : 'product_add',
@@ -2453,6 +2708,7 @@ function deleteProduct(id) {
   // Récupérer le nom avant suppression pour la notification
   const prod = DB.forM('products', m.id).find(p => p.id === id);
   DB.delete('products', id, m.id);
+  RT.markLocal('products', id);
   API.post('sync', { merchant_id: m.id, collection: 'products', delete: id }).catch(()=>{});
   // Notification propriétaire
   if (prod) StockNotif.push(m.id, {
@@ -2604,11 +2860,13 @@ function processCheckout() {
   cart.forEach(ci => { const idx = allP.findIndex(p => p.id === ci.pid && p.merchant_id === m.id); if (idx !== -1 && allP[idx].stock !== null) allP[idx].stock = Math.max(0, allP[idx].stock - ci.qty); });
   DB.set('products', allP);
   // Sync API — vente + stock en arrière-plan
+  RT.markLocal('sales', sale.id);
   API.post('sync', { merchant_id: m.id, collection: 'sales', item: sale }).catch(()=>{});
+  DB.forM('products', m.id).forEach(p => RT.markLocal('products', p.id));
   API.post('sync', { merchant_id: m.id, collection: 'products', items: DB.forM('products', m.id) }).catch(()=>{});
   if (cliId) {
     const cli = DB.forM('clients', m.id).find(c => c.id === cliId);
-    if (cli) API.post('sync', { merchant_id: m.id, collection: 'clients', item: cli }).catch(()=>{});
+    if (cli) { RT.markLocal('clients', cli.id); API.post('sync', { merchant_id: m.id, collection: 'clients', item: cli }).catch(()=>{}); }
   }
   // Store for WA button
   currentSaleWA = cliWA;
@@ -2855,6 +3113,7 @@ function processQuickSale() {
     items, total, devise: dev
   }, m.id);
   // Sync en arrière-plan
+  RT.markLocal('sales', sale.id);
   API.post('sync', { merchant_id: m.id, collection: 'sales', item: sale }).catch(() => {});
   // Afficher ticket thermique 80mm
   setPrintFmt('80');
@@ -3285,12 +3544,16 @@ function saveClient() {
   const nom = document.getElementById('c-nom').value.trim();
   if (!nom) { showToast('⚠️ Nom requis', 'error'); return; }
   const rec = {nom, whatsapp: document.getElementById('c-wa').value.trim().replace(/\D/g,'')};
-  editCliId ? DB.update('clients', editCliId, rec, m.id) : DB.insert('clients', rec, m.id);
+  const saved = editCliId ? DB.update('clients', editCliId, rec, m.id) : DB.insert('clients', rec, m.id);
+  const cli = DB.forM('clients', m.id).find(c => editCliId ? c.id === editCliId : c.nom === nom);
+  if (cli) { RT.markLocal('clients', cli.id); API.post('sync', { merchant_id: m.id, collection: 'clients', item: cli }).catch(()=>{}); }
   showToast('✅ Client ' + (editCliId ? 'mis à jour' : 'enregistré'), 'success');
   closeMo('mo-cli'); renderClients(); fillCliSelect();
 }
 function deleteClient(id) {
   const m = Auth.current(); if (!confirm('Supprimer ce client ?')) return;
+  RT.markLocal('clients', id);
+  API.post('sync', { merchant_id: m.id, collection: 'clients', delete: id }).catch(()=>{});
   DB.delete('clients', id, m.id); showToast('🗑️ Supprimé', 'success'); renderClients();
 }
 function renderClients() {
@@ -3678,6 +3941,8 @@ async function loginMerchant(e) {
     showToast('✅ Connecté !', 'success');
     // Badge notifications stock
     if (typeof StockNotif !== 'undefined') StockNotif._updateBadge(merchant.id);
+    // 4. Activer Realtime multi-appareils
+    RT.connect(merchant);
 
   } catch(err) {
     er.textContent = err.message;
@@ -3719,7 +3984,7 @@ function demoLogin() {
   showPage('page-app');
   showToast('👋 Démo Restaurant Djolof chargée !', 'success');
 }
-function logout() { Auth.logout(); cart = []; pinUnlocked = false; showPage('page-landing'); }
+function logout() { RT.disconnect(); Auth.logout(); cart = []; pinUnlocked = false; showPage('page-landing'); }
 
 // ---- MODALS ----
 function closeMo(id) { document.getElementById(id)?.classList.add('hidden'); }
@@ -4657,7 +4922,7 @@ function renderAdminTokenStatus() {
   const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || 'DIGITALE_ADMIN';
   const isDefault = token === 'DIGITALE_ADMIN';
   cur.innerHTML = isDefault
-    ? '⚠️ Token par défaut actif — <span style="color:#F39C12">configurez votre ADMIN_SECRET Vercel ci-dessus</span>'
+    ? '⚠️ Token par défaut actif — <span style="color:#E74C3C;font-weight:600">la synchronisation sera refusée</span>. Entrez votre ADMIN_SECRET Vercel ci-dessus et cliquez sur <strong>Sauvegarder</strong>.'
     : '🔑 Token actif : ' + token.substring(0, 4) + '••••••••' + token.slice(-3) + ' <span style="color:#3ECF8E">✓</span>';
 }
 
@@ -4720,6 +4985,26 @@ async function testSupabaseConnection() {
 
 async function syncAllToSupabase() {
   const btn = document.querySelector('[onclick="syncAllToSupabase()"]');
+
+  // ── Vérification préalable du token ──────────────────────────────────
+  const cfg = ADB.getCfg();
+  const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || localStorage.getItem('dsa_admin_secret') || 'DIGITALE_ADMIN';
+  if (token === 'DIGITALE_ADMIN') {
+    showAdminSbFeedback(
+      '🔑 Token par défaut détecté — entrez votre ADMIN_SECRET Vercel dans le champ ci-dessus et sauvegardez-le avant de synchroniser.',
+      'error'
+    );
+    // Mettre en évidence le champ token
+    const tokenInput = document.getElementById('adm-token-input');
+    if (tokenInput) {
+      tokenInput.style.borderColor = '#E74C3C';
+      tokenInput.focus();
+      setTimeout(() => { tokenInput.style.borderColor = ''; }, 4000);
+    }
+    return;
+  }
+  // ─────────────────────────────────────────────────────────────────────
+
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Sync...'; }
   showAdminSbFeedback('⏳ Préparation des données...', 'info');
   try {
@@ -4737,7 +5022,22 @@ async function syncAllToSupabase() {
     showAdminSbFeedback('✅ Sync complète — ' + details, 'success');
     ADB.addActivity('supabase_sync', 'Sync globale Supabase — ' + total + ' docs');
   } catch(e) {
-    showAdminSbFeedback('❌ ' + e.message, 'error');
+    // Message d'erreur contextuel selon le type d'erreur
+    const msg = e.message || '';
+    if (msg.toLowerCase().includes('autoris') || msg.includes('401') || msg.includes('403') || msg.toLowerCase().includes('unauthorized')) {
+      showAdminSbFeedback(
+        '🔑 Token refusé par le serveur — vérifiez que votre ADMIN_SECRET Vercel correspond exactement au token sauvegardé ci-dessus (sensible à la casse).',
+        'error'
+      );
+      const tokenInput = document.getElementById('adm-token-input');
+      if (tokenInput) {
+        tokenInput.style.borderColor = '#E74C3C';
+        tokenInput.focus();
+        setTimeout(() => { tokenInput.style.borderColor = ''; }, 5000);
+      }
+    } else {
+      showAdminSbFeedback('❌ ' + msg, 'error');
+    }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '☁️ Sync global → Supabase'; }
   }
@@ -4751,6 +5051,76 @@ function showAdminSbFeedback(msg, type) {
   el.textContent = msg;
   el.style.display = 'block';
   if (type !== 'info') setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+// ---- RT CONFIG (Admin Développeur) ----
+function _rtFeedback(msg, type) {
+  const el = document.getElementById('adm-rt-feedback');
+  if (!el) return;
+  const colors = { success:'#3ECF8E', error:'#E74C3C', info:'#4FC3F7' };
+  el.style.color = colors[type] || '#94A3B8';
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (type !== 'info') setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+function saveRtConfig() {
+  const url = document.getElementById('adm-rt-url')?.value.trim();
+  const key = document.getElementById('adm-rt-key')?.value.trim();
+  if (!url || !key) { _rtFeedback('⚠️ URL et Anon Key requis.', 'error'); return; }
+  if (!url.startsWith('https://')) { _rtFeedback('⚠️ URL invalide — doit commencer par https://', 'error'); return; }
+  RT.saveConfig(url, key);
+  _rtFeedback('✅ Config sauvegardée ! Reconnectez-vous pour activer le temps réel.', 'success');
+  const badge = document.getElementById('adm-rt-badge');
+  if (badge) { badge.textContent = '✅ Configuré'; badge.style.color = '#3ECF8E'; }
+  ADB.addActivity('rt_config', 'Config Realtime sauvegardée');
+}
+
+function clearRtConfig() {
+  if (!confirm('Effacer la configuration Realtime ?')) return;
+  localStorage.removeItem('ds_sb_client_url');
+  localStorage.removeItem('ds_sb_client_anon');
+  RT.disconnect();
+  RT._sb = null;
+  const url = document.getElementById('adm-rt-url');
+  const key = document.getElementById('adm-rt-key');
+  if (url) url.value = '';
+  if (key) key.value = '';
+  const badge = document.getElementById('adm-rt-badge');
+  if (badge) { badge.textContent = 'Non configuré'; badge.style.color = '#64748B'; }
+  _rtFeedback('🗑️ Config effacée.', 'info');
+}
+
+async function testRtConfig() {
+  const url = document.getElementById('adm-rt-url')?.value.trim() || localStorage.getItem('ds_sb_client_url');
+  const key = document.getElementById('adm-rt-key')?.value.trim() || localStorage.getItem('ds_sb_client_anon');
+  if (!url || !key) { _rtFeedback('⚠️ Entrez d\'abord URL et Anon Key.', 'error'); return; }
+  _rtFeedback('⏳ Test de la connexion Realtime...', 'info');
+  try {
+    const sb = supabase.createClient(url, key);
+    const ch = sb.channel('rt_test_ping')
+      .subscribe((status) => {
+        sb.removeChannel(ch);
+        if (status === 'SUBSCRIBED') {
+          _rtFeedback('✅ Connexion Realtime OK ! Supabase répond correctement.', 'success');
+          const badge = document.getElementById('adm-rt-badge');
+          if (badge) { badge.textContent = '🟢 Testé OK'; badge.style.color = '#3ECF8E'; }
+        } else {
+          _rtFeedback('❌ Échec — vérifiez URL et Anon Key (' + status + ')', 'error');
+        }
+      });
+    setTimeout(() => { try { sb.removeChannel(ch); } catch(e){} }, 8000);
+  } catch(e) {
+    _rtFeedback('❌ Erreur : ' + e.message, 'error');
+  }
+}
+
+function toggleRtKeyVis() {
+  const input = document.getElementById('adm-rt-key');
+  const eye = document.getElementById('adm-rt-eye');
+  if (!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
+  if (eye) eye.textContent = input.type === 'password' ? '👁' : '🙈';
 }
 
 function copySupabaseSchema() {
@@ -4779,6 +5149,18 @@ function loadMerchantDataFromFirebase() {}
 // ---- ADMIN DEVELOPER SECTION ----
 function renderAdminDeveloper() {
   renderAdminDeveloper_sbStatus();
+  // Pré-remplir les champs Realtime si déjà configurés
+  const cfg = RT._cfg();
+  const urlInput = document.getElementById('adm-rt-url');
+  const keyInput = document.getElementById('adm-rt-key');
+  if (urlInput && cfg.url) urlInput.value = cfg.url;
+  if (keyInput && cfg.key) keyInput.value = cfg.key;
+  const badge = document.getElementById('adm-rt-badge');
+  if (badge) {
+    if (RT.isLive()) { badge.textContent = '🟢 Actif'; badge.style.color = '#3ECF8E'; }
+    else if (cfg.url && cfg.key) { badge.textContent = '✅ Configuré'; badge.style.color = '#3ECF8E'; }
+    else { badge.textContent = 'Non configuré'; badge.style.color = '#64748B'; }
+  }
 }
 
 function exportLocalDB() {
@@ -5345,6 +5727,8 @@ document.addEventListener('DOMContentLoaded', async () => {  console.log('🚀 D
     if (typeof renderDashboard !== 'undefined') renderDashboard();
     // Badge notifications stock au démarrage
     if (typeof StockNotif !== 'undefined') StockNotif._updateBadge(m.id);
+    // Auto-connexion Realtime si config disponible
+    RT.connect(m);
   } else {
     showPage('page-landing');
   }
