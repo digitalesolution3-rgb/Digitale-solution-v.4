@@ -811,7 +811,7 @@ const API = {
   },
   async admin(action, body = {}) {
     const cfg = ADB?.getCfg?.() || {};
-    const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || 'DIGITALE_ADMIN';
+    const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || localStorage.getItem('dsa_admin_secret') || 'DIGITALE_ADMIN';
     const res = await fetch(API_BASE + '/api/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -1795,6 +1795,28 @@ window.addEventListener('load', checkApiStatus);
             côté serveur (variables Vercel) — aucune clé n'est stockée dans cette interface.
             Gérez votre projet sur <a href="https://supabase.com/dashboard" target="_blank" style="color:#3ECF8E">supabase.com/dashboard</a>.
           </p>
+
+          <!-- Token Admin Secret -->
+          <div style="background:rgba(232,115,12,0.06);border:1px solid rgba(232,115,12,0.2);border-radius:10px;padding:16px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span style="font-size:1rem">🔑</span>
+              <span style="font-size:.82rem;font-weight:700;color:#E8730C;text-transform:uppercase;letter-spacing:.05em">Admin Secret Token</span>
+              <span id="adm-token-saved-badge" style="font-size:.7rem;color:#3ECF8E;display:none">✅ Sauvegardé</span>
+            </div>
+            <p style="font-size:.78rem;color:#64748B;margin-bottom:12px">
+              Doit correspondre à la variable <code style="background:#0A0E16;padding:2px 6px;border-radius:4px;color:#94A3B8">ADMIN_SECRET</code> configurée sur Vercel. Utilisé pour authentifier les appels <code style="background:#0A0E16;padding:2px 6px;border-radius:4px;color:#94A3B8">/api/admin</code> et la synchronisation Supabase.
+            </p>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="position:relative;flex:1">
+                <input type="password" id="adm-token-input" placeholder="Entrez votre ADMIN_SECRET Vercel"
+                  style="width:100%;background:#0A0E16;border:1px solid rgba(232,115,12,0.3);border-radius:8px;color:#F0EDE8;padding:10px 40px 10px 12px;font-size:.85rem;font-family:'DM Sans',sans-serif"/>
+                <button onclick="toggleTokenVisibility()" id="adm-token-eye"
+                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#64748B;cursor:pointer;font-size:.9rem;padding:2px">👁</button>
+              </div>
+              <button class="btn-p sm" onclick="saveAdminToken()" style="white-space:nowrap">💾 Sauvegarder</button>
+            </div>
+            <div style="margin-top:8px;font-size:.73rem;color:#475569" id="adm-token-current"></div>
+          </div>
 
           <!-- Infos de connexion (lecture seule) -->
           <div class="adm-grid2" style="margin-bottom:16px">
@@ -3873,6 +3895,7 @@ const ADB = {
       this.set('config',{
         password_hash: DB._hash('admin2024'),
         token: 'DIGITALE',
+        admin_secret: 'DIGITALE_ADMIN',
         // ── Numéros de paiement Burkina Faso ──
         orange_num:    '76127809',
         orange_name:   'DIGITALE SOLUTION',
@@ -3893,6 +3916,13 @@ const ADB = {
     }
     if(!this.get('activity'))          this.set('activity',[]);
     if(!this.get('payment_requests'))  this.set('payment_requests',[]);
+    // Migration : si admin_secret absent du config existant, l'ajouter sans écraser le reste
+    const cfg = this.get('config');
+    if(cfg && !cfg.admin_secret){
+      const legacy = localStorage.getItem('ds_admin_secret') || 'DIGITALE_ADMIN';
+      cfg.admin_secret = legacy;
+      this.set('config', cfg);
+    }
   },
 
   getCfg(){return this.get('config')||{}},
@@ -4591,6 +4621,46 @@ function renewLicense(){
   openPaymentPage();
 }
 
+// --- TOKEN ADMIN SECRET ---
+function saveAdminToken() {
+  const input = document.getElementById('adm-token-input');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) { showAdminSbFeedback('⚠️ Token vide — non sauvegardé.', 'error'); return; }
+  const cfg = ADB.getCfg();
+  cfg.admin_secret = val;
+  ADB.set('config', cfg);
+  // Aussi dans localStorage legacy pour compatibilité
+  localStorage.setItem('ds_admin_secret', val);
+  input.value = '';
+  input.type = 'password';
+  const badge = document.getElementById('adm-token-saved-badge');
+  if (badge) { badge.style.display = 'inline'; setTimeout(() => badge.style.display = 'none', 3000); }
+  const cur = document.getElementById('adm-token-current');
+  if (cur) cur.textContent = '🔑 Token actif : ' + val.substring(0, 4) + '••••••••' + val.slice(-3);
+  showAdminSbFeedback('✅ Token sauvegardé ! La sync Supabase utilisera ce token.', 'success');
+  ADB.addActivity('token_update', 'Admin secret token mis à jour');
+}
+
+function toggleTokenVisibility() {
+  const input = document.getElementById('adm-token-input');
+  const eye = document.getElementById('adm-token-eye');
+  if (!input) return;
+  if (input.type === 'password') { input.type = 'text'; if (eye) eye.textContent = '🙈'; }
+  else { input.type = 'password'; if (eye) eye.textContent = '👁'; }
+}
+
+function renderAdminTokenStatus() {
+  const cur = document.getElementById('adm-token-current');
+  if (!cur) return;
+  const cfg = ADB.getCfg();
+  const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || 'DIGITALE_ADMIN';
+  const isDefault = token === 'DIGITALE_ADMIN';
+  cur.innerHTML = isDefault
+    ? '⚠️ Token par défaut actif — <span style="color:#F39C12">configurez votre ADMIN_SECRET Vercel ci-dessus</span>'
+    : '🔑 Token actif : ' + token.substring(0, 4) + '••••••••' + token.slice(-3) + ' <span style="color:#3ECF8E">✓</span>';
+}
+
 // --- SUPABASE INTEGRATION (Admin panel) ---
 
 function renderAdminDeveloper_sbStatus() {
@@ -4598,6 +4668,8 @@ function renderAdminDeveloper_sbStatus() {
   if (badge) { badge.textContent = 'Non vérifié'; badge.style.color = '#64748B'; }
   const urlDisplay = document.getElementById('adm-sb-url-display');
   if (urlDisplay) urlDisplay.value = 'Configuré sur Vercel (SUPABASE_URL)';
+  // Afficher le statut du token admin
+  renderAdminTokenStatus();
   // Stats DB locales
   const stats = document.getElementById('adm-db-stats');
   if (stats) {
