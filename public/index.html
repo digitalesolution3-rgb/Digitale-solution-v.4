@@ -474,9 +474,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .therm-sep{border:none;border-top:1px dashed #333;margin:6px 0}
 .therm-center{text-align:center}
 .therm-bold{font-weight:700}
-.therm-row{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
-.therm-row span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.therm-row span:last-child{flex-shrink:0;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.therm-row{display:flex;justify-content:space-between;gap:4px}
 .therm-sm{font-size:.85em;color:#444}
 /* ---- VENTE RAPIDE ---- */
 .qr-layout{display:grid;grid-template-columns:1fr 380px;height:calc(100vh - 64px);gap:0}
@@ -813,7 +811,7 @@ const API = {
   },
   async admin(action, body = {}) {
     const cfg = ADB?.getCfg?.() || {};
-    const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || 'DIGITALE_ADMIN';
+    const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || localStorage.getItem('dsa_admin_secret') || 'DIGITALE_ADMIN';
     const res = await fetch(API_BASE + '/api/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -863,7 +861,7 @@ window.addEventListener('load', checkApiStatus);
 <div id="page-landing" class="page active">
   <div class="lbg"></div>
   <nav class="lnav">
-    <div class="logo">
+    <div class="logo" id="dev-logo-trigger" style="cursor:default;user-select:none" title="">
       <svg class="logo-icon"><use href="#logo-sym"/></svg>
       <span class="logo-text"><strong>DIGITALE</strong> <em>SOLUTION</em></span>
     </div>
@@ -984,12 +982,12 @@ window.addEventListener('load', checkApiStatus);
       <button class="ni" onclick="showSection('quick')"    data-s="quick">   <span class="ni-ico">⚡</span><span class="nl">Vente Rapide</span></button>
       <button class="ni" onclick="showSection('caisse')"   data-s="caisse">  <span class="ni-ico">💰</span><span class="nl">Caisse</span></button>
       <button class="ni" onclick="showSection('products')" data-s="products"><span class="ni-ico">📦</span><span class="nl">Produits</span></button>
+      <button class="ni" onclick="showSection('sales')"  data-s="sales">    <span class="ni-ico">🧾</span><span class="nl">Mes Ventes</span><span class="ni-notif-dot" id="nav-cancel-dot" style="display:none"></span></button>
       <!-- PROPRIÉTAIRE — PIN requis -->
       <div class="nav-grp-lbl nav-grp-owner">🔐 Propriétaire</div>
       <button class="ni" onclick="reqPin('dashboard')" data-s="dashboard"><span class="ni-ico">📊</span><span class="nl">Dashboard</span><span class="ni-lock">🔒</span><span class="ni-notif-dot" id="nav-notif-dot" style="display:none"></span></button>
       <button class="ni" onclick="reqPin('stock')"     data-s="stock">    <span class="ni-ico">🏭</span><span class="nl">Gestion Stock</span><span class="ni-lock">🔒</span></button>
       <button class="ni" onclick="reqPin('clients')"   data-s="clients">  <span class="ni-ico">👥</span><span class="nl">Clients</span><span class="ni-lock">🔒</span></button>
-      <button class="ni" onclick="reqPin('sales')"     data-s="sales">    <span class="ni-ico">🧾</span><span class="nl">Ventes</span><span class="ni-lock">🔒</span></button>
       <button class="ni" onclick="reqPin('settings')"  data-s="settings"> <span class="ni-ico">⚙️</span><span class="nl">Paramètres</span><span class="ni-lock">🔒</span></button>
     </nav>
     <div class="sb-foot">
@@ -1252,6 +1250,11 @@ window.addEventListener('load', checkApiStatus);
 
     <!-- VENTES -->
     <section id="s-sales" class="section">
+      <!-- Bandeau info caissière (masqué si propriétaire connecté) -->
+      <div id="sales-cashier-banner" style="background:rgba(232,115,12,.08);border:1px solid rgba(232,115,12,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.83rem;display:flex;align-items:center;gap:10px;color:var(--text-muted)">
+        <span style="font-size:1.2rem">🧾</span>
+        <span>Vous pouvez <strong style="color:var(--accent)">annuler vos ventes récentes</strong> (≤ 15 min). Un <strong style="color:var(--accent)">justificatif</strong> sera automatiquement envoyé au propriétaire.</span>
+      </div>
       <div class="stbar">
         <input class="si" id="sale-srch" placeholder="🔍 Rechercher..." oninput="renderSales()"/>
         <span id="sale-total" class="ttag"></span>
@@ -1442,6 +1445,10 @@ window.addEventListener('load', checkApiStatus);
       <div style="margin-top:12px;padding:10px 12px;background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:var(--rsm);font-size:.78rem;color:#2ECC71;display:flex;align-items:center;gap:8px">
         📦 Le stock des produits sera <strong>automatiquement restauré</strong>.
       </div>
+      <!-- Info notification propriétaire -->
+      <div style="margin-top:8px;padding:10px 12px;background:rgba(232,115,12,.06);border:1px solid rgba(232,115,12,.2);border-radius:var(--rsm);font-size:.78rem;color:var(--accent);display:flex;align-items:center;gap:8px">
+        🔔 Un <strong>justificatif d'annulation</strong> sera envoyé au propriétaire (motif, montant, articles, heure).
+      </div>
       <div id="cancel-items-preview" style="margin-top:8px;font-size:.75rem;color:var(--text-muted)"></div>
     </div>
     <div class="mftr">
@@ -1519,6 +1526,7 @@ window.addEventListener('load', checkApiStatus);
     </nav>
     <div class="adm-foot">
       <div class="adm-foot-info">Session admin active</div>
+      <button class="adm-logout" onclick="showPage('page-landing')" style="color:#4FC3F7;margin-bottom:6px">🏠 Page d'accueil</button>
       <button class="adm-logout" onclick="adminLogout()">⏻ Déconnexion admin</button>
     </div>
   </div>
@@ -1787,6 +1795,28 @@ window.addEventListener('load', checkApiStatus);
             côté serveur (variables Vercel) — aucune clé n'est stockée dans cette interface.
             Gérez votre projet sur <a href="https://supabase.com/dashboard" target="_blank" style="color:#3ECF8E">supabase.com/dashboard</a>.
           </p>
+
+          <!-- Token Admin Secret -->
+          <div style="background:rgba(232,115,12,0.06);border:1px solid rgba(232,115,12,0.2);border-radius:10px;padding:16px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span style="font-size:1rem">🔑</span>
+              <span style="font-size:.82rem;font-weight:700;color:#E8730C;text-transform:uppercase;letter-spacing:.05em">Admin Secret Token</span>
+              <span id="adm-token-saved-badge" style="font-size:.7rem;color:#3ECF8E;display:none">✅ Sauvegardé</span>
+            </div>
+            <p style="font-size:.78rem;color:#64748B;margin-bottom:12px">
+              Doit correspondre à la variable <code style="background:#0A0E16;padding:2px 6px;border-radius:4px;color:#94A3B8">ADMIN_SECRET</code> configurée sur Vercel. Utilisé pour authentifier les appels <code style="background:#0A0E16;padding:2px 6px;border-radius:4px;color:#94A3B8">/api/admin</code> et la synchronisation Supabase.
+            </p>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="position:relative;flex:1">
+                <input type="password" id="adm-token-input" placeholder="Entrez votre ADMIN_SECRET Vercel"
+                  style="width:100%;background:#0A0E16;border:1px solid rgba(232,115,12,0.3);border-radius:8px;color:#F0EDE8;padding:10px 40px 10px 12px;font-size:.85rem;font-family:'DM Sans',sans-serif"/>
+                <button onclick="toggleTokenVisibility()" id="adm-token-eye"
+                  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#64748B;cursor:pointer;font-size:.9rem;padding:2px">👁</button>
+              </div>
+              <button class="btn-p sm" onclick="saveAdminToken()" style="white-space:nowrap">💾 Sauvegarder</button>
+            </div>
+            <div style="margin-top:8px;font-size:.73rem;color:#475569" id="adm-token-current"></div>
+          </div>
 
           <!-- Infos de connexion (lecture seule) -->
           <div class="adm-grid2" style="margin-bottom:16px">
@@ -2277,6 +2307,14 @@ function showSection(name) {
     }
   }
   document.getElementById('sidebar').classList.remove('mob-open');
+  // Bandeau caissière — masquer si propriétaire déverrouillé
+  if (name === 'sales') {
+    const banner = document.getElementById('sales-cashier-banner');
+    if (banner) banner.style.display = pinUnlocked ? 'none' : '';
+    // Effacer le badge cancel dot quand on ouvre la section
+    const cd = document.getElementById('nav-cancel-dot');
+    if (cd) cd.style.display = 'none';
+  }
   ({dashboard:renderDashboard,pos:renderPOS,quick:renderQuick,caisse:renderCaisse,products:renderProducts,stock:renderStock,clients:renderClients,sales:renderSales,settings:renderSettings})[name]?.();
 }
 function toggleSidebar() {
@@ -2828,24 +2866,11 @@ function processQuickSale() {
   renderDashboard();
 }
 
-/** Formate une date ISO en "JJ mois AAAA à HH:MM" — sans dépendance locale navigateur */
-function fmtDateFR(isoStr) {
-  const d = new Date(isoStr);
-  if (isNaN(d)) return '';
-  const mois = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-  const j  = String(d.getDate()).padStart(2,'0');
-  const mo = mois[d.getMonth()];
-  const y  = d.getFullYear();
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  return j + ' ' + mo + ' ' + y + ' à ' + hh + 'h' + mm;
-}
-
 function showInvoice(sale, m, cfg) {
   window._lastSale = {sale, m, cfg};
   const dev = cfg?.devise || sale.devise || 'FCFA';
   const num = 'DS-' + sale.id.substr(-8).toUpperCase();
-  const ds = fmtDateFR(sale.created_at);
+  const ds = new Date(sale.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
   const waNum = sale.client_wa || currentSaleWA || '';
   const waBtn = document.getElementById('wa-send-btn');
   if (waBtn) waBtn.style.display = waNum ? 'inline-flex' : 'none';
@@ -2890,11 +2915,9 @@ function buildA4Invoice(sale, m, cfg, num, ds, dev, waNum) {
 
 function buildThermalInvoice(sale, m, cfg, num, ds, dev, waNum, fmt) {
   const w = fmt === '58' ? '58mm' : '80mm';
-  const items = (sale.items || []).map(i => {
-    const nomTronque = i.nom.length > 22 ? i.nom.substr(0,21) + '\u2026' : i.nom;
-    const label = nomTronque + (i.qty > 1 ? ' x' + i.qty : '');
-    return '<div class="therm-row"><span>' + label + '</span><span>' + fmtMoney(i.prix * i.qty, dev) + '</span></div>';
-  }).join('');
+  const items = (sale.items || []).map(i =>
+    '<div class="therm-row"><span>' + i.nom + ' x' + i.qty + '</span><span>' + fmtMoney(i.prix * i.qty, dev) + '</span></div>'
+  ).join('');
   return '<div class="therm-wrap" style="width:' + w + '">' +
     '<div class="therm-center therm-bold" style="font-size:1.1em">🌐 ' + m.nom_commerce + '</div>' +
     '<div class="therm-center therm-sm">' + m.ville + ' · ' + m.telephone + '</div>' +
@@ -3069,77 +3092,106 @@ function escEncode(str) {
 function buildEscPos(sale, m, cfg) {
   const dev = cfg?.devise || sale.devise || 'FCFA';
   const num = 'DS-' + sale.id.substr(-8).toUpperCase();
-  const date = new Date(sale.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  const W = 48; // largeur 80mm ≈ 48 chars
 
-  function line(txt) { return [...escEncode(txt.substring(0, W)), 0x0A]; }
-  function center(txt) {
-    const pad = Math.max(0, Math.floor((W - txt.length) / 2));
-    return line(' '.repeat(pad) + txt);
-  }
-  function right(left, right) {
-    const pad = Math.max(1, W - left.length - right.length);
-    return line(left + ' '.repeat(pad) + right);
-  }
-  function separator() { return line('-'.repeat(W)); }
+  // ---- DATE robuste — sans dépendance locale navigateur ----
+  const _rawD = sale.created_at ? new Date(sale.created_at) : new Date();
+  const _d = isNaN(_rawD.getTime()) ? new Date() : _rawD;
+  const date = String(_d.getDate()).padStart(2,'0') + '/' +
+               String(_d.getMonth()+1).padStart(2,'0') + '/' +
+               _d.getFullYear() + ' ' +
+               String(_d.getHours()).padStart(2,'0') + ':' +
+               String(_d.getMinutes()).padStart(2,'0');
+
+  // W=32 : compatible 58mm ET 80mm (32 cols minimum garanti)
+  const W = 32;
 
   const ESC = 0x1B, GS = 0x1D;
+
+  // line() : encode + tronque + LF
+  function line(txt) { return [...escEncode(txt.substring(0, W)), 0x0A]; }
+
+  // center() : centrage HARDWARE via ESC a
+  function center(txt) {
+    return [ESC, 0x61, 0x01, ...escEncode(txt.substring(0, W)), 0x0A, ESC, 0x61, 0x00];
+  }
+
+  // right() : colonne gauche + colonne droite sur W colonnes
+  function right(leftTxt, rightTxt) {
+    const pad = Math.max(1, W - leftTxt.length - rightTxt.length);
+    return line(leftTxt + ' '.repeat(pad) + rightTxt);
+  }
+
+  // alignRight() : texte seul aligné à droite (sans colonne gauche)
+  function alignRight(txt) {
+    const pad = Math.max(0, W - txt.length);
+    return line(' '.repeat(pad) + txt);
+  }
+
+  function separator() { return line('-'.repeat(W)); }
+
   const cmd = [];
 
   // Init + charset
-  cmd.push(ESC, 0x40);           // ESC @ — reset
+  cmd.push(ESC, 0x40);           // ESC @ — reset complet
   cmd.push(ESC, 0x74, 0x10);    // charset PC437
 
-  // En-tête — nom commerce en GRAS + GRAND
-  cmd.push(ESC, 0x61, 0x01);    // centrer
-  cmd.push(GS,  0x21, 0x11);    // double taille
-  cmd.push(...escEncode(m.nom_commerce), 0x0A);
-  cmd.push(GS,  0x21, 0x00);    // taille normale
+  // --- EN-TÊTE : nom commerce en GRAS double-hauteur (une seule fois)
+  cmd.push(ESC, 0x61, 0x01);             // centrer
+  cmd.push(ESC, 0x45, 0x01);             // gras ON
+  cmd.push(ESC, 0x21, 0x10);             // hauteur x2 via ESC ! (compatible 58mm, W inchangé)
+  cmd.push(...line(m.nom_commerce));
+  cmd.push(ESC, 0x21, 0x00);             // taille normale
+  cmd.push(ESC, 0x45, 0x00);             // gras OFF
+  cmd.push(ESC, 0x61, 0x00);             // retour gauche
   cmd.push(...center(m.proprietaire + ' - ' + m.ville));
   cmd.push(...center('Tel: ' + m.telephone));
   cmd.push(...separator());
 
-  // Infos facture
-  cmd.push(ESC, 0x61, 0x00);    // gauche
+  // --- INFOS FACTURE (gauche)
   cmd.push(...line('Facture : ' + num));
   cmd.push(...line('Date    : ' + date));
   cmd.push(...line('Client  : ' + (sale.client_nom || 'Client')));
   cmd.push(...separator());
 
-  // En-tête tableau
-  cmd.push(ESC, 0x45, 0x01);    // gras ON
-  cmd.push(...right('ARTICLE  QTE', 'TOTAL'));
-  cmd.push(ESC, 0x45, 0x00);    // gras OFF
+  // --- EN-TÊTE TABLEAU
+  cmd.push(ESC, 0x45, 0x01);             // gras ON
+  cmd.push(...right('ARTICLE', 'TOTAL'));
+  cmd.push(ESC, 0x45, 0x00);             // gras OFF
   cmd.push(...separator());
 
-  // Articles
+  // --- ARTICLES
   (sale.items || []).forEach(item => {
-    const nomTronc = item.nom.substring(0, 22);
-    const qteStr  = 'x' + item.qty;
     const totStr  = fmtMoney(item.prix * item.qty, dev);
-    cmd.push(...right(nomTronc + ' ' + qteStr, totStr));
-    // Prix unitaire si qty > 1
+    // Tronquer le nom pour laisser de la place au montant + 1 espace
+    const maxNom  = W - totStr.length - 1;
+    const nomLine = (item.nom + (item.qty > 1 ? ' x' + item.qty : '')).substring(0, maxNom);
+    cmd.push(...right(nomLine, totStr));
+    // Prix unitaire si qté > 1 — aligné à droite proprement
     if (item.qty > 1) {
-      cmd.push(...line('  ' + fmtMoney(item.prix, dev) + '/u'));
+      cmd.push(...alignRight(fmtMoney(item.prix, dev) + '/u'));
     }
   });
 
   cmd.push(...separator());
 
-  // Total en GRAS + GRAND
-  cmd.push(ESC, 0x61, 0x01);    // centrer
-  cmd.push(GS,  0x21, 0x11);    // double taille
-  cmd.push(...escEncode('TOTAL: ' + fmtMoney(sale.total, dev)), 0x0A);
-  cmd.push(GS,  0x21, 0x00);    // normal
+  // --- TOTAL : gras uniquement, PAS de double-hauteur (GS 0x10 coupe à 16 cols sur 58mm)
+  cmd.push(ESC, 0x61, 0x01);             // centrer
+  cmd.push(ESC, 0x45, 0x01);             // gras ON
+  cmd.push(ESC, 0x21, 0x10);             // hauteur x2 via ESC ! (plus compatible que GS !)
+  const totalLine = 'TOTAL: ' + fmtMoney(sale.total, dev);
+  cmd.push(...line(totalLine));
+  cmd.push(ESC, 0x21, 0x00);             // taille normale
+  cmd.push(ESC, 0x45, 0x00);             // gras OFF
+  cmd.push(ESC, 0x61, 0x00);             // retour gauche
 
-  // Pied de page
+  // --- PIED DE PAGE
   cmd.push(...separator());
   cmd.push(...center('Merci pour votre achat !'));
   cmd.push(...center('Digitale Solution'));
-  cmd.push(0x0A, 0x0A, 0x0A);   // 3 lignes vides avant découpe
+  cmd.push(0x0A, 0x0A, 0x0A);           // 3 lignes vides avant découpe
 
   // Découpe papier
-  cmd.push(GS, 0x56, 0x42, 0x00); // coupe partielle
+  cmd.push(GS, 0x56, 0x42, 0x00);
 
   return new Uint8Array(cmd);
 }
@@ -3429,7 +3481,7 @@ function confirmCancelSale() {
     statut:            'cancelled',
     cancelled_reason:  selectedMotif,
     cancelled_detail:  detail,
-    cancelled_by:      pinUnlocked ? 'proprietaire' : 'gerant',
+    cancelled_by:      pinUnlocked ? ('Propriétaire — ' + (m.proprietaire||'')) : ('Caissière — ' + (m.proprietaire||m.nom_commerce||'')),
     cancelled_at:      new Date().toISOString(),
     stock_restored:    true
   };
@@ -3439,18 +3491,25 @@ function confirmCancelSale() {
   API.post('sync', { merchant_id: m.id, collection: 'sales',    item: sales[idx] }).catch(()=>{});
   API.post('sync', { merchant_id: m.id, collection: 'products', items: DB.forM('products', m.id) }).catch(()=>{});
 
-  // Notification propriétaire
+  // Notification propriétaire — justificatif complet
   const dev = getConfig().devise || 'FCFA';
+  const cancelledBy = pinUnlocked ? 'Propriétaire' : (m.proprietaire || 'Caissière');
+  const itemsStr    = (sale.items || []).map(i => i.qty + '× ' + i.nom).join(', ');
+  const timeStr     = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   StockNotif.push(m.id, {
     type:   'sale_cancelled',
     icon:   '🚫',
-    title:  `Vente annulée — ${sale.client_nom}`,
-    detail: `${fmtMoney(sale.total, dev)} · Motif : ${selectedMotif}${detail ? ' — ' + detail : ''}`
+    title:  `Annulation par ${cancelledBy} — ${sale.client_nom || 'Client'}`,
+    detail: `💰 ${fmtMoney(sale.total, dev)} · 🕐 ${timeStr} · Motif : ${selectedMotif}${detail ? ' — ' + detail : ''}${itemsStr ? ' · Articles : ' + itemsStr : ''}`
   });
+
+  // Badge rouge sur nav Ventes (caissière voit ses annulations en attente)
+  const cancelDot = document.getElementById('nav-cancel-dot');
+  if (cancelDot) cancelDot.style.display = 'block';
 
   closeMo('mo-cancel');
   pendingCancelId = null; selectedMotif = null;
-  showToast('🚫 Vente annulée — stock restauré.', 'success');
+  showToast('🚫 Vente annulée — justificatif envoyé au propriétaire.', 'success');
   renderSales();
   renderDashboard();
 }
@@ -3836,6 +3895,7 @@ const ADB = {
       this.set('config',{
         password_hash: DB._hash('admin2024'),
         token: 'DIGITALE',
+        admin_secret: 'DIGITALE_ADMIN',
         // ── Numéros de paiement Burkina Faso ──
         orange_num:    '76127809',
         orange_name:   'DIGITALE SOLUTION',
@@ -3856,6 +3916,13 @@ const ADB = {
     }
     if(!this.get('activity'))          this.set('activity',[]);
     if(!this.get('payment_requests'))  this.set('payment_requests',[]);
+    // Migration : si admin_secret absent du config existant, l'ajouter sans écraser le reste
+    const cfg = this.get('config');
+    if(cfg && !cfg.admin_secret){
+      const legacy = localStorage.getItem('ds_admin_secret') || 'DIGITALE_ADMIN';
+      cfg.admin_secret = legacy;
+      this.set('config', cfg);
+    }
   },
 
   getCfg(){return this.get('config')||{}},
@@ -4554,6 +4621,46 @@ function renewLicense(){
   openPaymentPage();
 }
 
+// --- TOKEN ADMIN SECRET ---
+function saveAdminToken() {
+  const input = document.getElementById('adm-token-input');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) { showAdminSbFeedback('⚠️ Token vide — non sauvegardé.', 'error'); return; }
+  const cfg = ADB.getCfg();
+  cfg.admin_secret = val;
+  ADB.set('config', cfg);
+  // Aussi dans localStorage legacy pour compatibilité
+  localStorage.setItem('ds_admin_secret', val);
+  input.value = '';
+  input.type = 'password';
+  const badge = document.getElementById('adm-token-saved-badge');
+  if (badge) { badge.style.display = 'inline'; setTimeout(() => badge.style.display = 'none', 3000); }
+  const cur = document.getElementById('adm-token-current');
+  if (cur) cur.textContent = '🔑 Token actif : ' + val.substring(0, 4) + '••••••••' + val.slice(-3);
+  showAdminSbFeedback('✅ Token sauvegardé ! La sync Supabase utilisera ce token.', 'success');
+  ADB.addActivity('token_update', 'Admin secret token mis à jour');
+}
+
+function toggleTokenVisibility() {
+  const input = document.getElementById('adm-token-input');
+  const eye = document.getElementById('adm-token-eye');
+  if (!input) return;
+  if (input.type === 'password') { input.type = 'text'; if (eye) eye.textContent = '🙈'; }
+  else { input.type = 'password'; if (eye) eye.textContent = '👁'; }
+}
+
+function renderAdminTokenStatus() {
+  const cur = document.getElementById('adm-token-current');
+  if (!cur) return;
+  const cfg = ADB.getCfg();
+  const token = cfg.admin_secret || localStorage.getItem('ds_admin_secret') || 'DIGITALE_ADMIN';
+  const isDefault = token === 'DIGITALE_ADMIN';
+  cur.innerHTML = isDefault
+    ? '⚠️ Token par défaut actif — <span style="color:#F39C12">configurez votre ADMIN_SECRET Vercel ci-dessus</span>'
+    : '🔑 Token actif : ' + token.substring(0, 4) + '••••••••' + token.slice(-3) + ' <span style="color:#3ECF8E">✓</span>';
+}
+
 // --- SUPABASE INTEGRATION (Admin panel) ---
 
 function renderAdminDeveloper_sbStatus() {
@@ -4561,6 +4668,8 @@ function renderAdminDeveloper_sbStatus() {
   if (badge) { badge.textContent = 'Non vérifié'; badge.style.color = '#64748B'; }
   const urlDisplay = document.getElementById('adm-sb-url-display');
   if (urlDisplay) urlDisplay.value = 'Configuré sur Vercel (SUPABASE_URL)';
+  // Afficher le statut du token admin
+  renderAdminTokenStatus();
   // Stats DB locales
   const stats = document.getElementById('adm-db-stats');
   if (stats) {
@@ -4653,6 +4762,13 @@ function copySupabaseSchema() {
     showAdminToast('⚠️ Sélectionnez et copiez manuellement.', 'error');
   });
 }
+
+// Config Firebase globale (placeholder — remplacé par valeurs sauvegardées)
+const FIREBASE_CONFIG = {
+  apiKey: 'VOTRE_API_KEY',
+  authDomain: '', projectId: '', storageBucket: '',
+  messagingSenderId: '', appId: ''
+};
 
 // Stub — Firebase retiré, fonctions gardées vides pour compatibilité
 function initFirebase() {}
@@ -5055,6 +5171,134 @@ API.post = async function(endpoint, body) {
   }
 };
 
+// ============================================================
+// DEV ADMIN — TRIPLE-CLIC LOGO + PIN CACHÉ (PIN: 761278)
+// ============================================================
+(function(){
+  const DEV_PIN = '761278';
+
+  /* Injection du modal PIN */
+  const modalHTML = `
+  <div id="dev-pin-overlay" style="
+    display:none;position:fixed;inset:0;z-index:9999;
+    background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);
+    align-items:center;justify-content:center;">
+    <div style="
+      background:#0F0E0D;border:1px solid rgba(232,115,12,0.4);
+      border-radius:20px;padding:36px 32px;width:100%;max-width:320px;
+      box-shadow:0 24px 80px rgba(0,0,0,0.8);animation:mIn .22s ease;
+      font-family:'DM Sans',sans-serif;color:#F0EDE8;text-align:center;position:relative;z-index:1;">
+      <div style="font-size:2.4rem;margin-bottom:8px">🔑</div>
+      <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:4px">Accès Développeur</h3>
+      <p style="font-size:.75rem;color:#5A5652;margin-bottom:24px">Digitale Solution — Zone réservée</p>
+      <div id="dev-pin-dots" style="display:flex;gap:10px;justify-content:center;margin-bottom:8px"></div>
+      <div id="dev-pin-err" style="color:#E74C3C;font-size:.78rem;min-height:20px;margin-bottom:12px"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:220px;margin:0 auto 20px">
+        <button onclick="devPinKey('1')" class="dpk">1</button>
+        <button onclick="devPinKey('2')" class="dpk">2</button>
+        <button onclick="devPinKey('3')" class="dpk">3</button>
+        <button onclick="devPinKey('4')" class="dpk">4</button>
+        <button onclick="devPinKey('5')" class="dpk">5</button>
+        <button onclick="devPinKey('6')" class="dpk">6</button>
+        <button onclick="devPinKey('7')" class="dpk">7</button>
+        <button onclick="devPinKey('8')" class="dpk">8</button>
+        <button onclick="devPinKey('9')" class="dpk">9</button>
+        <div></div>
+        <button onclick="devPinKey('0')" class="dpk">0</button>
+        <button onclick="devPinKey('del')" class="dpk dpk-del">⌫</button>
+      </div>
+      <button onclick="devPinClose()" style="font-size:.75rem;color:#5A5652;background:none;border:none;cursor:pointer;padding:4px 12px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#F0EDE8'" onmouseout="this.style.color='#5A5652'">
+        ✕ Annuler
+      </button>
+    </div>
+  </div>
+  <style>
+  .dpk{background:#1E1C1A;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:15px 0;font-size:1.15rem;font-weight:700;cursor:pointer;color:#F0EDE8;font-family:'Syne',sans-serif;transition:background .12s,transform .1s}
+  .dpk:hover{background:#2A2724;transform:scale(1.04)}
+  .dpk:active{background:#E8730C;color:#fff;transform:scale(.97)}
+  .dpk-del{color:#E74C3C}
+  .dpk-del:active{background:#E74C3C;color:#fff}
+  </style>`;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  let pinBuffer = '';
+  const MAX = DEV_PIN.length;
+
+  function renderDots(){
+    const el = document.getElementById('dev-pin-dots');
+    if(!el) return;
+    el.innerHTML = Array.from({length:MAX}).map((_,i)=>
+      `<div style="width:13px;height:13px;border-radius:50%;border:2px solid rgba(232,115,12,0.5);background:${i < pinBuffer.length ? '#E8730C' : 'transparent'};transition:background .15s"></div>`
+    ).join('');
+  }
+
+  window.devPinKey = function(k){
+    const err = document.getElementById('dev-pin-err');
+    if(err) err.textContent = '';
+    if(k === 'del'){ pinBuffer = pinBuffer.slice(0,-1); renderDots(); return; }
+    if(pinBuffer.length >= MAX) return;
+    pinBuffer += k;
+    renderDots();
+    if(pinBuffer.length === MAX){
+      setTimeout(()=>{
+        if(pinBuffer === DEV_PIN){
+          sessionStorage.setItem('dsa_session','1');
+          devPinClose();
+          if(typeof showPage!=='undefined') showPage('page-admin');
+          if(typeof adminSection!=='undefined') adminSection('developer');
+          if(typeof startAdminClock!=='undefined') startAdminClock();
+          if(typeof updatePayBadge!=='undefined') updatePayBadge();
+          if(typeof ADB!=='undefined') ADB.addActivity('login','Accès développeur — triple-clic logo');
+        } else {
+          pinBuffer = ''; renderDots();
+          const e = document.getElementById('dev-pin-err');
+          if(e) e.textContent = '⚠️ PIN incorrect. Réessayez.';
+        }
+      }, 100);
+    }
+  };
+
+  window.devPinClose = function(){
+    pinBuffer = ''; renderDots();
+    const overlay = document.getElementById('dev-pin-overlay');
+    if(overlay) overlay.style.display = 'none';
+    const err = document.getElementById('dev-pin-err');
+    if(err) err.textContent = '';
+  };
+
+  /* Fermer sur clic fond */
+  document.addEventListener('click', function(e){
+    const overlay = document.getElementById('dev-pin-overlay');
+    if(overlay && e.target === overlay) devPinClose();
+  });
+
+  /* Clavier physique */
+  document.addEventListener('keydown', function(e){
+    const overlay = document.getElementById('dev-pin-overlay');
+    if(!overlay || overlay.style.display === 'none') return;
+    if(e.key >= '0' && e.key <= '9') devPinKey(e.key);
+    else if(e.key === 'Backspace') devPinKey('del');
+    else if(e.key === 'Escape') devPinClose();
+  });
+
+  /* Triple-clic sur le logo globe */
+  let _cc = 0, _ct = null;
+  document.addEventListener('click', function(e){
+    const trigger = document.getElementById('dev-logo-trigger');
+    if(!trigger || !trigger.contains(e.target)) return;
+    _cc++;
+    if(_ct) clearTimeout(_ct);
+    _ct = setTimeout(()=>{ _cc = 0; }, 600);
+    if(_cc >= 3){
+      _cc = 0; clearTimeout(_ct);
+      pinBuffer = ''; renderDots();
+      const overlay = document.getElementById('dev-pin-overlay');
+      if(overlay) overlay.style.display = 'flex';
+    }
+  });
+})();
+
 // --- FINAL INIT ---
 document.addEventListener('DOMContentLoaded', async () => {  console.log('🚀 Démarrage de Digitale Solution...');
 
@@ -5081,16 +5325,13 @@ document.addEventListener('DOMContentLoaded', async () => {  console.log('🚀 D
     const cfg = typeof ADB !== 'undefined' ? ADB.getCfg() : {};
     const validToken = cfg.token || 'DIGITALE';
     if (urlToken === validToken) {
-      if (typeof AdminAuth !== 'undefined' && AdminAuth.isLogged()) {
-        showPage('page-admin');
-        if (typeof adminSection !== 'undefined') adminSection('overview');
-        if (typeof startAdminClock !== 'undefined') startAdminClock();
-        if (typeof updatePayBadge !== 'undefined') updatePayBadge();
-      } else {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const pal = document.getElementById('page-admin-login');
-        if (pal) { pal.classList.add('active'); setTimeout(() => document.getElementById('adm-pwd')?.focus(), 200); }
-      }
+      // Forcer la session admin (corrige le bug post-deploiement)
+      sessionStorage.setItem('dsa_session', '1');
+      showPage('page-admin');
+      if (typeof adminSection !== 'undefined') adminSection('overview');
+      if (typeof startAdminClock !== 'undefined') startAdminClock();
+      if (typeof updatePayBadge !== 'undefined') updatePayBadge();
+      if (typeof ADB !== 'undefined') ADB.addActivity('login', 'Connexion admin via lien URL');
     } else {
       showPage('page-landing');
     }
